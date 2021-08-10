@@ -1,0 +1,20 @@
+html,
+body {
+  margin: 0;
+}
+
+button {
+  background: #fff;
+}
+
+button:active {
+  background: #ff0000;
+}
+
+.red-bg {
+  background: #ff0000;
+}
+
+.white-bg {
+  background: #fff;
+}
