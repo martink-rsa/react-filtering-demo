@@ -8,14 +8,33 @@ import useQueryParams from '../../hooks/useQueryParams';
 const IndexPage = () => {
   const [queryParams, setQueryParams] = useQueryParams();
 
+  // Toggling on:
+  // 1. Add value to the parameter array
+
+  // Toggling off:
+  // 1. Remove value from parameter array
+
   const toggleParam = (param, value) => {
+    // Might not be an array yet
     if (queryParams[param]?.includes(value)) {
-      console.log(queryParams);
-      setQueryParams({
-        [param]: [],
-      });
+      // Remove item from the array
+      setQueryParams(
+        // The user might land on a filtered page so
+        //    an array might not exist yet.
+        Array.isArray(queryParams[param])
+          ? {
+              [param]: queryParams[param].filter((item) => item !== value),
+            }
+          : { [param]: [] },
+      );
     } else {
-      setQueryParams({ [param]: [value] });
+      // Turn single key/pair into array
+      // { variant: hair } => { variant: [hair, skin] }
+      if (queryParams[param]) {
+        setQueryParams({ [param]: [queryParams[param], value] });
+      } else {
+        setQueryParams({ [param]: [value] });
+      }
     }
   };
 
@@ -46,25 +65,39 @@ const IndexPage = () => {
       </div>
       <div>
         <button
-          className={flair === 'bestSeller' ? 'red-bg' : 'white-bg'}
+          className={
+            flair === 'bestSeller' || flair?.includes('bestSeller')
+              ? 'red-bg'
+              : 'white-bg'
+          }
           onClick={() => toggleParam('flair', 'bestSeller')}
         >
           Best seller
         </button>
         <button
-          className={flair === 'new' ? 'red-bg' : 'white-bg'}
+          className={
+            flair === 'new' || flair?.includes('new') ? 'red-bg' : 'white-bg'
+          }
           onClick={() => toggleParam('flair', 'new')}
         >
           New
         </button>
         <button
-          className={productType === 'haircare' ? 'red-bg' : 'white-bg'}
+          className={
+            productType === 'haircare' || productType?.includes('haircare')
+              ? 'red-bg'
+              : 'white-bg'
+          }
           onClick={() => toggleParam('productType', 'haircare')}
         >
           Haircare
         </button>
         <button
-          className={productType === 'skincare' ? 'red-bg' : 'white-bg'}
+          className={
+            productType === 'skincare' || productType?.includes('skincare')
+              ? 'red-bg'
+              : 'white-bg'
+          }
           onClick={() => toggleParam('productType', 'skincare')}
         >
           Skincare
@@ -80,7 +113,7 @@ const IndexPage = () => {
           data-parent-id="flair"
           data-current-id="bestSeller"
           onChange={() => toggleParam('flair', 'bestSeller')}
-          checked={flair === 'bestSeller'}
+          checked={flair === 'bestSeller' || flair?.includes('bestSeller')}
         />
         <label htmlFor="flairNew">New</label>
         <input
@@ -91,7 +124,7 @@ const IndexPage = () => {
           data-parent-id="flair"
           data-current-id="new"
           onChange={() => toggleParam('flair', 'new')}
-          checked={flair === 'new'}
+          checked={flair === 'new' || flair?.includes('new')}
         />
       </div>
       <div>
@@ -104,7 +137,9 @@ const IndexPage = () => {
           data-parent-id="productType"
           data-current-id="haircare"
           onChange={() => toggleParam('productType', 'haircare')}
-          checked={productType === 'haircare'}
+          checked={
+            productType === 'haircare' || productType?.includes('haircare')
+          }
         />
         <label htmlFor="productTypeSkincare">Skincare</label>
         <input
@@ -115,7 +150,9 @@ const IndexPage = () => {
           data-parent-id="productType"
           data-current-id="skincare"
           onChange={() => toggleParam('productType', 'skincare')}
-          checked={productType === 'skincare'}
+          checked={
+            productType === 'skincare' || productType?.includes('skincare')
+          }
         />
       </div>
 
@@ -123,7 +160,7 @@ const IndexPage = () => {
         {data
           .filter((card) =>
             [
-              flair ? flair === card.flair : true,
+              flair ? flair === card.flair || flair.includes(card.flair) : true,
               productType ? productType === card.productType : true,
             ].reduce((acc, res) => acc && res, true),
           )

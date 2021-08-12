@@ -3,20 +3,10 @@ import { useLocation, navigate } from '@reach/router';
 // import qs from 'qs';
 import qs from 'query-string';
 
-const obj = {
-  parent: [true],
-};
-
-console.log(qs.stringify(obj));
-
 const useQueryParams = () => {
   const location = useLocation();
 
-  const params = useMemo(
-    () => qs.parse(location.search, { ignoreQueryPrefix: true }),
-    [location.search],
-  );
-
+  const params = useMemo(() => qs.parse(location.search), [location.search]);
   const setParams = useCallback(
     (_newParams) => {
       console.debug('_newParams:', _newParams);
@@ -33,7 +23,6 @@ const useQueryParams = () => {
 
       if (search !== location.search) {
         // navigate(location.pathname + search);
-        console.log(search);
         navigate('?' + search);
       }
     },
