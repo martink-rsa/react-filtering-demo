@@ -9,13 +9,25 @@ const IndexPage = () => {
   const [queryParams, setQueryParams] = useQueryParams();
 
   const toggleParam = (param, value) => {
+    console.log(queryParams);
+    console.log(queryParams[param]);
     if (queryParams[param]?.includes(value)) {
-      console.log(queryParams);
       setQueryParams({
-        [param]: [],
+        [param]: queryParams[param].filter((item) => {
+          console.log({ item, value });
+          return item !== value;
+        }),
       });
     } else {
-      setQueryParams({ [param]: [value] });
+      console.log(queryParams);
+      console.log(queryParams[param]);
+      console.log(value);
+      setQueryParams(
+        queryParams[param]
+          ? // ? { [param]: queryParams[param].push(value) }
+            { [param]: [value, 'test'] }
+          : { [param]: [value] },
+      );
     }
   };
 
