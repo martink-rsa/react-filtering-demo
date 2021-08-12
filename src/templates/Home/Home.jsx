@@ -8,32 +8,41 @@ import useQueryParams from '../../hooks/useQueryParams';
 const IndexPage = () => {
   const [queryParams, setQueryParams] = useQueryParams();
 
-  // Toggling on:
-  // 1. Add value to the parameter array
+  // const toggleParam = (param, value) => {
+  //   if (queryParams[param] === value) {
+  //     setQueryParams({ [param]: undefined });
+  //   } else {
+  //     setQueryParams({ [param]: value });
+  //   }
+  // };
 
-  // Toggling off:
-  // 1. Remove value from parameter array
-
+  // A challenge with the query params:
+  // Single value is a key-pair value,
+  // More than one is array
   const toggleParam = (param, value) => {
-    // Might not be an array yet
+    const allowMultipleValues = false;
     if (queryParams[param]?.includes(value)) {
-      // Remove item from the array
-      setQueryParams(
-        // The user might land on a filtered page so
-        //    an array might not exist yet.
-        Array.isArray(queryParams[param])
-          ? {
-              [param]: queryParams[param].filter((item) => item !== value),
-            }
-          : { [param]: [] },
-      );
-    } else {
-      // Turn single key/pair into array
-      // { variant: hair } => { variant: [hair, skin] }
-      if (queryParams[param]) {
-        setQueryParams({ [param]: [queryParams[param], value] });
+      // The user might land on a filtered page with just one
+      //    key so an array might not exist yet.
+      if (Array.isArray(queryParams[param])) {
+        setQueryParams({
+          [param]: queryParams[param].filter((item) => item !== value),
+        });
       } else {
-        setQueryParams({ [param]: [value] });
+        // if (allowMultipleValues) {}
+        setQueryParams({ [param]: undefined });
+      }
+    } else {
+      if (queryParams[param]) {
+        if (allowMultipleValues) {
+          // Turn single key/pair into array
+          // { variant: hair } => { variant: [hair, skin] }
+          setQueryParams({ [param]: [queryParams[param], value] });
+        } else {
+          setQueryParams({ [param]: value });
+        }
+      } else {
+        setQueryParams({ [param]: value });
       }
     }
   };
@@ -83,21 +92,13 @@ const IndexPage = () => {
           New
         </button>
         <button
-          className={
-            productType === 'haircare' || productType?.includes('haircare')
-              ? 'red-bg'
-              : 'white-bg'
-          }
+          className={productType === 'haircare' ? 'red-bg' : 'white-bg'}
           onClick={() => toggleParam('productType', 'haircare')}
         >
           Haircare
         </button>
         <button
-          className={
-            productType === 'skincare' || productType?.includes('skincare')
-              ? 'red-bg'
-              : 'white-bg'
-          }
+          className={productType === 'skincare' ? 'red-bg' : 'white-bg'}
           onClick={() => toggleParam('productType', 'skincare')}
         >
           Skincare
@@ -137,9 +138,7 @@ const IndexPage = () => {
           data-parent-id="productType"
           data-current-id="haircare"
           onChange={() => toggleParam('productType', 'haircare')}
-          checked={
-            productType === 'haircare' || productType?.includes('haircare')
-          }
+          checked={productType === 'haircare'}
         />
         <label htmlFor="productTypeSkincare">Skincare</label>
         <input
@@ -150,9 +149,7 @@ const IndexPage = () => {
           data-parent-id="productType"
           data-current-id="skincare"
           onChange={() => toggleParam('productType', 'skincare')}
-          checked={
-            productType === 'skincare' || productType?.includes('skincare')
-          }
+          checked={productType === 'skincare'}
         />
       </div>
 
