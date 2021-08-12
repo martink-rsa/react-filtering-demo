@@ -4,14 +4,19 @@ export const controls = [
     key: 'flair',
     titleVisible: false,
     type: 'checkbox',
+    allowMultipleValues: true,
     children: [
       {
         title: 'Best Seller',
-        key: 'bestSeller',
+        value: 'bestSeller',
       },
       {
         title: 'New',
-        key: 'new',
+        value: 'new',
+      },
+      {
+        title: 'Stock',
+        value: 'stock',
       },
     ],
   },
@@ -19,15 +24,15 @@ export const controls = [
     title: 'Product Type',
     key: 'productType',
     titleVisible: false,
-    type: 'checkbox',
+    allowMultipleValues: false,
     children: [
       {
         title: 'Haircare',
-        key: 'haircare',
+        value: 'haircare',
       },
       {
         title: 'Skincare',
-        key: 'skincare',
+        value: 'skincare',
       },
     ],
   },

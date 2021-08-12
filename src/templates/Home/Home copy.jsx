@@ -1,118 +1,53 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { navigate, useLocation } from '@reach/router';
-import { parse, stringify } from 'query-string';
+import React from 'react';
 import { Link } from 'gatsby';
 import './Home.css';
 import { data } from '../../data';
-import { controls } from './data';
-import Controls from './Controls';
-
-export function reduceControls(params) {
-  const newSet = {};
-  Object.keys(params).map((parentKey) => {
-    const activeParams = Object.keys(params[parentKey]).reduce(
-      (controls, key) => {
-        if (params[parentKey][key]) {
-          controls.push(key);
-        }
-        return controls;
-      },
-      [],
-    );
-    if (activeParams.length > 0) {
-      console.log({ activeParams });
-      newSet[parentKey] = activeParams;
-    }
-  });
-  return newSet;
-}
-
-function isShownByFlair(product, filters) {
-  const flairFilters = filters.filter((filter) => filter.group === 'flair');
-  if (!flairFilters.length) return true;
-  return flairFilters.some((filter) => filter.fnc(product));
-}
-
-function isShownByProductType(product, filters) {
-  const productTypeFilters = filters.filter(
-    (filter) => filter.group === 'productType',
-  );
-  if (!productTypeFilters.length) return true;
-  return productTypeFilters.every((filter) => filter.fnc(product));
-}
-
-export function applyFilters(products, filters) {
-  return products.filter((product) => {
-    const showByFlair = isShownByFlair(product, filters);
-    const showByProductType = isShownByProductType(product, filters);
-    return showByFlair && showByProductType;
-  });
-}
+import useQueryParams from '../../hooks/useQueryParams';
 
 // markup
 const IndexPage = () => {
-  const location = useLocation();
-  const params = useMemo(() => parse(location.search), [location.search]);
+  const [queryParams, setQueryParams] = useQueryParams();
 
-  const [filters, setFilters] = useState([]);
-  /* Object.keys(params).forEach((key) => {
-    toggleFilter(params[key], key, (item) => item[key] === params[key]);
-  }); */
-
-  function filterExists(name, group) {
-    return (
-      filters.find((f) => f.name === name && f.group === group) !== undefined
-    );
-  }
-
-  function addFilter(name, group, fnc) {
-    setFilters((currentFilters) => [...currentFilters, { name, group, fnc }]);
-  }
-
-  function removeFilter(name, group) {
-    setFilters((currentFilters) =>
-      currentFilters.filter((f) => !(f.name === name && f.group === group)),
-    );
-  }
-
-  function toggleFilter(name, group, fnc) {
-    if (filterExists(name, group)) {
-      removeFilter.apply(null, arguments);
+  // This code needs a major refactor. The if checks can be
+  //    reduced to something more simpler. It has been hackwork
+  //    to get a basic concept going
+  // A challenge with the query params:
+  // Controls need to function like checkboxes and radio buttons
+  // None-selected and all-selected should both show all items
+  // Single value is a key-pair value,
+  // More than one is array
+  const toggleParam = (param, value) => {
+    const allowMultipleValues = param === 'flair';
+    if (queryParams[param]?.includes(value)) {
+      // The user might land on a filtered page with just one
+      //    key so an array might not exist yet.
+      if (Array.isArray(queryParams[param])) {
+        setQueryParams({
+          [param]: queryParams[param].filter((item) => item !== value),
+        });
+      } else {
+        setQueryParams({ [param]: undefined });
+      }
     } else {
-      addFilter.apply(null, arguments);
+      if (queryParams[param]) {
+        if (allowMultipleValues) {
+          if (Array.isArray(queryParams[param])) {
+            // Turn single key/pair into array
+            // { variant: hair } => { variant: [hair, skin] }
+            setQueryParams({ [param]: [...queryParams[param], value] });
+          } else {
+            setQueryParams({ [param]: [queryParams[param], value] });
+          }
+        } else {
+          setQueryParams({ [param]: value });
+        }
+      } else {
+        setQueryParams({ [param]: value });
+      }
     }
-  }
+  };
 
-  const [controls, setControls] = useState({
-    flair: { bestSeller: false, new: false },
-    productType: { haircare: false, skincare: false },
-  });
-
-  function handleCheckbox(event) {
-    setControls((prevState) => {
-      const parentKey = event.target.getAttribute('data-parent-id');
-      const currentKey = event.target.getAttribute('data-current-id');
-      return {
-        ...prevState,
-        [parentKey]: {
-          ...prevState[parentKey],
-          [currentKey]: !prevState[parentKey][currentKey],
-        },
-      };
-    });
-  }
-  useEffect(() => {
-    Object.keys(params).forEach((key) => {
-      toggleFilter(params[key], key, (item) => item[key] === params[key]);
-    });
-  }, [params]);
-
-  useEffect(() => {
-    const reducedControls = reduceControls(controls);
-    navigate('?' + stringify(reducedControls));
-  }, [controls]);
-
-  let shownData = applyFilters(data, filters);
+  const { productType, flair } = queryParams;
 
   return (
     <main>
@@ -139,79 +74,68 @@ const IndexPage = () => {
       </div>
       <div>
         <button
-          active={filterExists('bestSeller', 'flair')}
           className={
-            filterExists('bestSeller', 'flair') ? 'red-bg' : 'white-bg'
+            flair === 'stock' || flair?.includes('stock')
+              ? 'red-bg'
+              : 'white-bg'
           }
-          onClick={() =>
-            toggleFilter(
-              'bestSeller',
-              'flair',
-              (item) => item.flair === 'bestSeller',
-            )
+          onClick={() => toggleParam('flair', 'stock')}
+        >
+          Stock
+        </button>
+        <button
+          className={
+            flair === 'bestSeller' || flair?.includes('bestSeller')
+              ? 'red-bg'
+              : 'white-bg'
           }
+          onClick={() => toggleParam('flair', 'bestSeller')}
         >
           Best seller
         </button>
         <button
-          className={filterExists('new', 'flair') ? 'red-bg' : 'white-bg'}
-          onClick={() =>
-            toggleFilter('new', 'flair', (item) => item.flair === 'new')
+          className={
+            flair === 'new' || flair?.includes('new') ? 'red-bg' : 'white-bg'
           }
+          onClick={() => toggleParam('flair', 'new')}
         >
           New
         </button>
         <button
-          className={
-            filterExists('haircare', 'productType') ? 'red-bg' : 'white-bg'
-          }
-          onClick={() =>
-            toggleFilter(
-              'haircare',
-              'productType',
-              (item) => item.productType === 'haircare',
-            )
-          }
+          className={productType === 'haircare' ? 'red-bg' : 'white-bg'}
+          onClick={() => toggleParam('productType', 'haircare')}
         >
           Haircare
         </button>
         <button
-          className={
-            filterExists('skincare', 'productType') ? 'red-bg' : 'white-bg'
-          }
-          onClick={() =>
-            toggleFilter(
-              'skincare',
-              'productType',
-              (item) => item.productType === 'skincare',
-            )
-          }
+          className={productType === 'skincare' ? 'red-bg' : 'white-bg'}
+          onClick={() => toggleParam('productType', 'skincare')}
         >
           Skincare
         </button>
       </div>
-      {/* <Controls config={controls} /> */}
       <div>
         <label htmlFor="flairBestSeller">Best Seller</label>
         <input
           type="checkbox"
           id="flairBestSeller"
-          name="flairBestSeller"
+          name="flair"
+          value="bestseller"
           data-parent-id="flair"
           data-current-id="bestSeller"
-          onChange={handleCheckbox}
-          checked={filterExists('bestSeller', 'flair')}
-          test={console.log(controls.flair.bestSeller)}
+          onChange={() => toggleParam('flair', 'bestSeller')}
+          checked={flair === 'bestSeller' || flair?.includes('bestSeller')}
         />
         <label htmlFor="flairNew">New</label>
         <input
           type="checkbox"
           id="flairNew"
-          name="flairNew"
+          name="flair"
+          value="new"
           data-parent-id="flair"
           data-current-id="new"
-          onChange={handleCheckbox}
-          checked={controls.flair.new}
+          onChange={() => toggleParam('flair', 'new')}
+          checked={flair === 'new' || flair?.includes('new')}
         />
       </div>
       <div>
@@ -219,33 +143,42 @@ const IndexPage = () => {
         <input
           type="checkbox"
           id="productTypeHaircare"
-          name="productTypeHaircare"
+          name="productType"
+          value="haircare"
           data-parent-id="productType"
           data-current-id="haircare"
-          onChange={handleCheckbox}
-          checked={controls.productType.haircare}
+          onChange={() => toggleParam('productType', 'haircare')}
+          checked={productType === 'haircare'}
         />
         <label htmlFor="productTypeSkincare">Skincare</label>
         <input
           type="checkbox"
           id="productTypeSkincare"
-          name="productTypeSkincare"
+          name="productType"
+          value="skincare"
           data-parent-id="productType"
           data-current-id="skincare"
-          onChange={handleCheckbox}
-          checked={controls.productType.skincare}
+          onChange={() => toggleParam('productType', 'skincare')}
+          checked={productType === 'skincare'}
         />
       </div>
 
       <div style={{ padding: '10px 5px 0' }}>
-        {shownData.map((card) => (
-          <div
-            key={card.id}
-            style={{ backgroundColor: card?.flair && 'lightblue' }}
-          >
-            {card.title} - {card.productType} | {card?.flair}
-          </div>
-        ))}
+        {data
+          .filter((card) =>
+            [
+              flair ? flair === card.flair || flair.includes(card.flair) : true,
+              productType ? productType === card.productType : true,
+            ].reduce((acc, res) => acc && res, true),
+          )
+          .map((card) => (
+            <div
+              key={card.id}
+              style={{ backgroundColor: card?.flair && 'lightblue' }}
+            >
+              {card.title} - {card.productType} | {card?.flair}
+            </div>
+          ))}
       </div>
     </main>
   );

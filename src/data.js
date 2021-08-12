@@ -1,5 +1,5 @@
 const productTypes = { haircare: 'haircare', skincare: 'skincare' };
-const flairTypes = { bestSeller: 'bestSeller', new: 'new' };
+const flairTypes = { bestSeller: 'bestSeller', new: 'new', stock: 'stock' };
 
 export const data = [
   {
@@ -68,5 +68,11 @@ export const data = [
     id: 'p12',
     title: 'Product 0',
     productType: productTypes.skincare,
+  },
+  {
+    id: 'stock',
+    title: 'Stock',
+    productType: productTypes.skincare,
+    flair: flairTypes.stock,
   },
 ];
