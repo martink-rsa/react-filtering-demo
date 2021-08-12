@@ -77,7 +77,8 @@ const IndexPage = () => {
           <div>
             {children.map(({ title, value }) => (
               <>
-                <test test={console.log({ title, value })} />
+                <test test={console.log(queryParams)} />
+                <test test={console.log(queryParams[key])} />
                 <label htmlFor={`input-${key}-${value}`}>{title}</label>
                 <input
                   type="checkbox"
@@ -87,6 +88,8 @@ const IndexPage = () => {
                   checked={
                     queryParams[key] === value ||
                     queryParams[key]?.includes(value)
+                      ? true
+                      : false
                   }
                 />
               </>
